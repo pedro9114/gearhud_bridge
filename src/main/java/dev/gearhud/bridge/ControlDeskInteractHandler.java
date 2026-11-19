@@ -4,7 +4,6 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,13 +16,12 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
-@EventBusSubscriber(modid = "gearhud_bridge")
+@EventBusSubscriber(modid = GearHudBridge.MODID)
 public class ControlDeskInteractHandler {
 
     private static final ResourceLocation CONTROL_DESK_ID =
             ResourceLocation.fromNamespaceAndPath("aeroworks", "copycat_control_desk");
 
-    // Radio máximo de búsqueda siguiendo bloques conectados del vehículo
     private static final int SEARCH_RADIUS = 16;
 
     @SubscribeEvent
@@ -36,16 +34,11 @@ public class ControlDeskInteractHandler {
         BlockState state = level.getBlockState(clickedPos);
         ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
 
-        // 1. Verificar si tocó aeroworks:copycat_control_desk
         if (!CONTROL_DESK_ID.equals(blockId)) return;
 
-        // 2. Buscar el Gearshift conectado más cercano dentro del mismo vehículo
         BlockEntity nearestGearshift = findConnectedGearshift(level, clickedPos, SEARCH_RADIUS);
-
         if (nearestGearshift != null) {
-            // 3. Vincular este Gearshift al jugador
-            // IMPORTANTE: Revisá que el nombre de este método coincida con el que tenés en GearHudBridge.java
-            GearHudBridge.bindPlayerToGearshift(nearestGearshift, player);
+            GearHudBridge.claim(nearestGearshift, player);
         }
     }
 
@@ -61,16 +54,11 @@ public class ControlDeskInteractHandler {
         while (!queue.isEmpty()) {
             BlockPos current = queue.poll();
 
-            // Revisar si este bloque es un Compact Gearshift
             BlockEntity be = level.getBlockEntity(current);
-            if (be != null) {
-                ResourceLocation beId = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(be.getType());
-                if (beId != null && beId.getNamespace().equals("compact_gearshift")) {
-                    return be;
-                }
+            if (be instanceof GearAccess) {
+                return be;
             }
 
-            // Expandir solo hacia bloques vecinos conectados (que no sean aire)
             for (Direction dir : Direction.values()) {
                 BlockPos neighbor = current.relative(dir);
                 if (!visited.contains(neighbor) && neighbor.distSqr(origin) <= maxDistSq) {
