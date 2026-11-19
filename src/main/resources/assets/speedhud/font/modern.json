@@ -1,0 +1,11 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "gearhud_bridge:font/extra.png",
+      "height": 192,
+      "ascent": 7,
+      "chars": ["NR"]
+    }
+  ]
+}
