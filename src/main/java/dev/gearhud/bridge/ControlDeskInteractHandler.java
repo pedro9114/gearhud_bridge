@@ -2,7 +2,6 @@ package dev.gearhud.bridge;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -32,17 +31,11 @@ public class ControlDeskInteractHandler {
         BlockState state = level.getBlockState(clickedPos);
         ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
 
-        // DEBUG TEMPORAL: muestra en el chat qué bloque tocaste
-        player.sendSystemMessage(Component.literal("[GearHUD Debug] Clic en: " + blockId + " @ " + clickedPos));
-
         if (!CONTROL_DESK_ID.equals(blockId)) return;
 
         BlockEntity nearestGearshift = findNearestGearshiftBox(level, clickedPos, SEARCH_RADIUS);
         if (nearestGearshift != null) {
             GearHudBridge.claim(nearestGearshift, player);
-            player.sendSystemMessage(Component.literal("[GearHUD Debug] Gearbox vinculada en: " + nearestGearshift.getBlockPos()));
-        } else {
-            player.sendSystemMessage(Component.literal("[GearHUD Debug] No se encontró ninguna Gearbox en radio " + SEARCH_RADIUS));
         }
     }
 
@@ -54,14 +47,11 @@ public class ControlDeskInteractHandler {
         Level level = player.level();
         if (level.isClientSide()) return;
 
-        // Si el control desk sienta al jugador en una entidad de asiento dentro del shipyard,
-        // buscamos el control desk y la gearbox cerca de la posición del asiento
         BlockPos seatPos = event.getEntityBeingMounted().blockPosition();
         BlockEntity nearestGearshift = findNearestGearshiftBox(level, seatPos, SEARCH_RADIUS);
 
         if (nearestGearshift != null) {
             GearHudBridge.claim(nearestGearshift, player);
-            player.sendSystemMessage(Component.literal("[GearHUD Debug] Gearbox vinculada al sentarse en: " + nearestGearshift.getBlockPos()));
         }
     }
 
